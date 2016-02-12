@@ -70,7 +70,7 @@ Vagrant.configure(2) do |config|
 # Ansible provisioner example using docker.yml
 
   config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "provisioners/docker.yml"
+    ansible.playbook = "ansible/provision.yml"
   end
 
 
