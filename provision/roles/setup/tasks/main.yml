@@ -12,3 +12,9 @@
 - name: Install virtualenvwrapper
   pip: name=virtualenvwrapper
 
+- name: Add vagrant user to docker group
+  user: name=vagrant groups=docker
+
+- name: Add virtualenv info to vagrant user profile
+  lineinfile: dest=/home/vagrant/.profile line="export WORKON_HOME=$HOME/Virtualenvs\nif [ -f /usr/local/bin/virtualenvwrapper.sh ]; then\n source /usr/local/bin/virtualenvwrapper.sh\nfi"
+
