@@ -1,0 +1,14 @@
+# From: https://danielgroves.net/notebook/2014/05/development-environments/
+# Adapted for ubuntu since Travis-CI operates under ubuntu.
+- name: Install packages
+  become: yes
+  apt: pkg={{ item }} state=installed update_cache=yes
+  with_items:
+      # Python Dev
+      - python-dev
+      - python-setuptools
+      - python-virtualenv
+
+- name: Install virtualenvwrapper
+  pip: name=virtualenvwrapper
+

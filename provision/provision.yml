@@ -1,0 +1,10 @@
+# http://erikaheidi.com/blog/configuring-a-multistage-environment-with-ansible-and-vagrant
+# Setup for multistage deployment with Vagrant and Ansible.
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Make sure git is installed
+      apt: name=git state=present
+  roles:
+    - setup

@@ -1,9 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-#https://horaceheaven.com/ochestrate-docker-containers-using-vagrant-ansible/
-#
-
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -17,47 +14,47 @@ Vagrant.configure(2) do |config|
   # boxes at https://atlas.hashicorp.com/search.
   config.vm.box = "ubuntu/trusty64"
 
-  # Disable automatic box update checking. If you disable this, then
-  # boxes will only be checked for updates when the user runs
-  # `vagrant box outdated`. This is not recommended.
-  # config.vm.box_check_update = false
+  # Set up virtualbox with a private network address
+  config.vm.network :private_network, ip: "192.168.56.121"
+  config.ssh.forward_agent = true
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 8080, host: 8080
 
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
-  config.vm.network "forwarded_port", guest: 3000, host: 3000
-
-
-  # Create a public network, which generally matched to bridged network.
-  # Bridged networks make the machine appear as another physical device on
-  # your network.
-  # config.vm.network "public_network"
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-   config.vm.synced_folder "./smartcontainers", "/smartcontainers"
+  config.vm.synced_folder "./smartcontainers", "/opt/smartcontainers"
 
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
-  config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-  #   vb.gui = true
-  #
-  #   # Customize the amount of memory on the VM:
-     vb.memory = "1024"
+  # Prefer Virtualbox as a provider.
+  config.vm.provider "virtualbox"
+  # Openstack uses shell configuration downloaded
+  # from OpenStack auth/security tab.
+  # Prevents sensitive info from ending up in Vagrantfile
+  # See: https://github.com/ggiamarchi/vagrant-openstack-provider/issues/70
+  config.vm.provider "openstack" do |os, override|
+        override.vm.box = "dummy"
+        override.ssh.username = "centos"
+        override.ssh.private_key_path = "~/.ssh/schema_crc_nd_edu"
+        # Specify OpenStack authentication information
+        os.openstack_auth_url = ENV['OS_AUTH_URL']
+        os.username = ENV['OS_USERNAME']
+        os.password = ENV['OS_PASSWORD']
+        os.tenant_name = ENV['OS_TENANT_NAME']
+		os.region = ENV['OS_REGION_NAME']
+
+       # Specify instance information
+		os.server_name = "schema_crc_nd_edu-test"
+ 		os.flavor = "RAM-2GB Disk-8GB CPU-2"
+		os.image = "CRC-CentOS-6.6-x86_64"
+		os.networks = "Campus - Private 1"
+		os.keypair_name = "schema_crc_nd_edu"
+		os.security_groups = ["default","DASPOS"] 
   end
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
   # such as FTP and Heroku are also available. See the documentation at
@@ -66,20 +63,15 @@ Vagrant.configure(2) do |config|
   #   push.app = "YOUR_ATLAS_USERNAME/YOUR_APPLICATION_NAME"
   # end
 
-
-# Ansible provisioner example using docker.yml
-
+  # Run Ansible from the Vagrant Host
+  # Ansible is configured to run multiple inventories
+  # http://erikaheidi.com/blog/configuring-a-multistage-environment-with-ansible-and-vagrant
   config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "ansible/provision.yml"
+    ansible.verbose = "vvv"
+    ansible.playbook = "provision/provision.yml"
+    ansible.inventory_path = "provision/inventories/dev"
+    ansible.limit = 'all'
+    ansible.extra_vars = { ansible_connection: 'ssh', ansible_ssh_args: '-o ForwardAgent=yes' }
   end
 
-
-
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   sudo apt-get update
-  #   sudo apt-get install -y apache2
-  # SHELL
 end
