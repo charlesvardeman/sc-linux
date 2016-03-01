@@ -1,20 +1,43 @@
 # From: https://danielgroves.net/notebook/2014/05/development-environments/
+# https://github.com/monooso/vagrant-ansible-python
 # Adapted for ubuntu since Travis-CI operates under ubuntu.
-- name: Install packages
+
+---
+- name: Update APT cache
   become: yes
-  apt: pkg={{ item }} state=installed update_cache=yes
+  apt: update_cache=yes cache_valid_time=3600
+
+- name: Upgrade APT
+  become: yes
+  apt: upgrade=yes
+
+
+- name: Install basic packages
+  become: yes
+  apt: pkg={{ item }} state=latest
   with_items:
-      # Python Dev
-      - python-dev
-      - python-setuptools
-      - python-virtualenv
+    - build-essential
+    - python-setuptools
+    - python-dev
+    - git
+    - curl
+    - zip
+    - wget
+    
+- name: Install pip
+  sudo: yes
+  easy_install:
+    name: pip
 
-- name: Install virtualenvwrapper
-  pip: name=virtualenvwrapper
-
+- name: Install basic pip packages
+  pip: name={{ item }}
+  with_items:
+    - tox
+    - sphinx
+    
 - name: Add vagrant user to docker group
   user: name=vagrant groups=docker
 
-- name: Add virtualenv info to vagrant user profile
-  lineinfile: dest=/home/vagrant/.profile line="export WORKON_HOME=$HOME/Virtualenvs\nif [ -f /usr/local/bin/virtualenvwrapper.sh ]; then\n source /usr/local/bin/virtualenvwrapper.sh\nfi"
+  #- name: Add virtualenv info to vagrant user profile
+  #  lineinfile: dest=/home/vagrant/.profile line="export WORKON_HOME=$HOME/Virtualenvs\nif [ -f /usr/local/bin/virtualenvwrapper.sh ]; then\n source /usr/local/bin/virtualenvwrapper.sh\nfi"
 

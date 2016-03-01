@@ -7,5 +7,7 @@
     - name: Make sure git is installed
       apt: name=git state=present
   roles:
-    - setup
     - angstwad.docker_ubuntu
+    - setup
+    - bash
+    - virtualenv
