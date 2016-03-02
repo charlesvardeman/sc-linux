@@ -31,7 +31,14 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder "./smartcontainers", "/opt/smartcontainers"
 
   # Prefer Virtualbox as a provider.
-  config.vm.provider "virtualbox"
+  # Tox requires the ability to create symlinks withing 
+  # synced folders. This will enable vbox to 
+  # turn on symlinks in the shared file system.
+  config.vm.provider "virtualbox" do |v|
+   v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1"]
+  end
+
+
   # Openstack uses shell configuration downloaded
   # from OpenStack auth/security tab.
   # Prevents sensitive info from ending up in Vagrantfile
